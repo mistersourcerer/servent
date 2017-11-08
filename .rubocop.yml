@@ -1,8 +1,9 @@
 AllCops:
   Exclude:
-    - bin/**
-    - Gemfile
-    - Rakefile
+    - 'bin/**'
+    - 'Gemfile'
+    - 'Rakefile'
+    - 'vendor/**/*'
 
 Metrics/LineLength:
   Max: 80
@@ -17,4 +18,7 @@ Style/StringLiterals:
   EnforcedStyle: double_quotes
 
 Style/BlockDelimiters:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
   Enabled: false
