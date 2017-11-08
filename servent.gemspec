@@ -8,12 +8,12 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Ricardo Valeriano"]
   spec.email         = ["mister.sourcerer@gmail.com"]
 
-  spec.summary       = %q{Ruby Server-Sent Events client.}
-  spec.description   = %q{
+  spec.summary       = %(Ruby Server-Sent Events client.)
+  spec.description   = %(
     Provides a pure Ruby client implementation
     for Server-Sent Events
     as specified in https://www.w3.org/TR/eventsource/.
-  }
+  )
   spec.homepage      = "https://github.com/mistersourcerer/servent"
   spec.license       = "MIT"
 
@@ -27,4 +27,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "bundler", "~> 1.16"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.7"
+  spec.add_development_dependency "rubocop"
 end
