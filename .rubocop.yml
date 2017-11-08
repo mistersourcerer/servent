@@ -1,0 +1,20 @@
+AllCops:
+  Exclude:
+    - bin/**
+    - Gemfile
+    - Rakefile
+
+Metrics/LineLength:
+  Max: 80
+
+Metrics/ClassLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Max: 10
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/BlockDelimiters:
+  Enabled: false
