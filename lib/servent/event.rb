@@ -3,7 +3,7 @@ module Servent
     attr_reader :type, :data
 
     def initialize
-      @data = String.new
+      @data = ""
     end
 
     def parse(stream)
@@ -21,9 +21,7 @@ module Servent
       # starts with :, comment -> ignore
 
       # contains :, field -> split : field => data (remove first space)
-      if line.include?("\u{}") # include? ":"
-        parse_field line
-      end
+      return parse_field line if line.include?("\u{003A}") # include? ":"
 
       # else, field: field = data, data = ''
     end

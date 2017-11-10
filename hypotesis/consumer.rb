@@ -19,7 +19,7 @@ Thread.new do
   end
 end
 
-while(chunk = q.pop)
+while (chunk = q.pop)
   puts chunk
 end
 

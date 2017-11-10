@@ -3,7 +3,7 @@ RSpec.describe Servent::Event do
   describe "#parse" do
     context "data:" do
       context 'happy path stream: a simple `data: omg\n\r\n`.' do
-        it 'recognizes the simple `data: omg\n\n` pattern as a complete event' do
+        it 'recognizes simple `data: omg\n\n` pattern as a complete event' do
           event.parse "data:omg\n\r\n"
 
           expect(event).to be_data "omg"
@@ -32,21 +32,20 @@ RSpec.describe Servent::Event do
 end
 
 RSpec::Matchers.define :be_data do |data|
-  _data = data
   match do |event|
-    "data" == event.type && data == event.data
+    event.type == "data" && event.data == data
   end
 
   failure_message do |event|
-    message = String.new
+    message = ""
 
     if event.type != "data"
       message << "expected event#type to be 'data' but was #{event.type}"
     end
 
-    if event.data != _data
+    if event.data != data
       message << "\n" unless message.empty?
-      message << "expected event#data to be '#{_data}' but was #{event.data}"
+      message << "expected event#data to be '#{data}' but was #{event.data}"
     end
 
     message
