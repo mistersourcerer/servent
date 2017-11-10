@@ -1,3 +1,4 @@
+require "servent/stream"
 require "servent/event"
 
 module Servent

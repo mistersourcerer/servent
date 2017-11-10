@@ -24,16 +24,16 @@ server = WEBrick::HTTPServer.new Port: 9292
 
 clients = []
 
-server.mount_proc "/" do |req, res|
-  r,w = IO.pipe
+server.mount_proc "/" do |_, res|
+  r, w = IO.pipe
   clients << w
 
-  res.content_type = 'text/event-stream'
+  res.content_type = "text/event-stream"
   res.body = r
   res.chunked = true
 end
 
-server.mount_proc "/broadcast" do |req, res|
+server.mount_proc "/broadcast" do |_, _|
   clients.each do |client|
     Thread.new do
       client << SSEEvent.new("streaming!").event

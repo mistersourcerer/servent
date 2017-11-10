@@ -2,12 +2,9 @@ module Servent
   class Event
     attr_reader :type, :data
 
-    def initialize
-      @data = String.new
-    end
-
-    def parse(stream)
-      StringIO.open(stream) do |io|
+    def initialize(event)
+      @data = ""
+      StringIO.open(event) do |io|
         io.each_line { |line| parse_line line }
       end
     end
@@ -15,42 +12,27 @@ module Servent
     private
 
     def parse_line(line)
-      # empty line?, nothing -> ignore
-      return if line.chomp.rstrip.empty?
+      return unless line.include?(Servent::COLON)
+      normalize_type_and_data(* line.split(":"))
+    end
 
-      # starts with :, comment -> ignore
-
-      # contains :, field -> split : field => data (remove first space)
-      if line.include?("\u{}") # include? ":"
-        parse_field line
+    def normalize_type_and_data(type, data)
+      if type == "event"
+        @type = remove_extra_space data.chomp
+      else
+        @type = "data" if @type.nil?
+        concat_data data
       end
-
-      # else, field: field = data, data = ''
     end
 
-    def parse_field(line)
-      field = Field.new(* line.split(":"))
-      @type = field.type
+    def remove_extra_space(raw_data)
+      return raw_data unless raw_data[0] == "\u{0020}"
+      raw_data[1..(raw_data.length - 1)]
+    end
+
+    def concat_data(data)
       @data << "\n" unless @data.empty?
-      @data << field.data
-    end
-  end
-
-  class Field
-    attr_reader :type
-
-    def initialize(type, raw_data)
-      @type = type
-      @raw_data = raw_data.chomp
-    end
-
-    def data
-      @data ||= if @raw_data[0] == "\u{0020}"
-                  # remove first char if it is a space.
-                  @raw_data[1..(@raw_data.length - 1)]
-                else
-                  @raw_data
-                end
+      @data << remove_extra_space(data)
     end
   end
 end
