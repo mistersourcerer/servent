@@ -20,7 +20,7 @@ module Servent
       if type == "event"
         @type = remove_extra_space data.chomp
       else
-        @type = "data" if @type.nil?
+        @type = "message" if @type.nil?
         concat_data data
       end
     end

@@ -3,13 +3,13 @@ RSpec.describe Servent::Event do
     it "recognizes a simple `data: omg` stream" do
       event = described_class.new "data: omg"
 
-      expect(event).to be_event("data", "omg")
+      expect(event).to be_event("message", "omg")
     end
 
     it 'removes just one space from message `data:\s\somg`' do
       event = described_class.new "data:\s\somg"
 
-      expect(event).to be_event("data", " omg")
+      expect(event).to be_event("message", " omg")
     end
   end
 
