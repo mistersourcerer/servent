@@ -1,6 +1,6 @@
 module Servent
   class Event
-    attr_reader :type, :data
+    attr_reader :type, :data, :id
 
     def initialize(event)
       @data = ""
@@ -17,8 +17,12 @@ module Servent
     end
 
     def normalize_type_and_data(type, data)
+      data = remove_extra_space(data).chomp
+
       if type == "event"
-        @type = remove_extra_space data.chomp
+        @type = data
+      elsif type == "id"
+        @id = data
       else
         @type = "message" if @type.nil?
         concat_data data
@@ -32,7 +36,7 @@ module Servent
 
     def concat_data(data)
       @data << "\n" unless @data.empty?
-      @data << remove_extra_space(data).chomp
+      @data << data
     end
   end
 end
