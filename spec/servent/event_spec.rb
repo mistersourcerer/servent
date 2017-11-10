@@ -34,6 +34,12 @@ RSpec.describe Servent::Event do
 
           expect(event).to be_message "data", "omg"
         end
+
+        it 'removes just one space from message `data:\s\somg\r\n\r`' do
+          event.parse "data:\s\somg\r\n\r"
+
+          expect(event).to be_message "data", " omg"
+        end
       end
     end
   end
