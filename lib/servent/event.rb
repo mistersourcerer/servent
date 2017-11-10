@@ -28,7 +28,7 @@ module Servent
       return if line.start_with? COLON
 
       # contains :, field -> split : field => data (remove first space)
-      return parse_field line if line.include?("\u{003A}") # include? ":"
+      return parse_field line if line.include?(COLON)
 
       # else, field: field = data, data = ''
     end
