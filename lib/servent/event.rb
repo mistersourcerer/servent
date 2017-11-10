@@ -21,11 +21,8 @@ module Servent
     COLON = "\u{003A}".freeze
 
     def parse_line(line)
-      # empty line?, nothing -> ignore
-      return if line.chomp.rstrip.empty?
-
-      # starts with :, comment -> ignore
-      return if line.start_with? COLON
+      # ignore if line is empty or starts with `:`
+      return if line.chomp.rstrip.empty? || line.start_with?(COLON)
 
       # contains :, field -> split : field => data (remove first space)
       return parse_field line if line.include?(COLON)
