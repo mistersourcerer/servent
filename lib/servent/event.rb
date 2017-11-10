@@ -11,10 +11,8 @@ module Servent
 
     private
 
-    COLON = "\u{003A}".freeze
-
     def parse_line(line)
-      return unless line.include?(COLON)
+      return unless line.include?(Servent::COLON)
 
       @type, data = line.split(":")
       @data << "\n" unless @data.empty?

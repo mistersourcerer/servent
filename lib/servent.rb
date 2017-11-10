@@ -2,5 +2,5 @@ require "servent/version"
 require "servent/event_source"
 
 module Servent
-  # Your code goes here...
+  COLON = "\u{003A}".freeze
 end
