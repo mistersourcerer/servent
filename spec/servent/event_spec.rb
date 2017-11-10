@@ -1,6 +1,14 @@
 RSpec.describe Servent::Event do
   subject(:event) { described_class.new }
   describe "#parse" do
+    context ":comment" do
+      it "ignores streams starting with `:`" do
+        event.parse ":omg! this is a comment\n\r"
+
+        expect(event).to be_empty
+      end
+    end
+
     context "data:" do
       context 'happy path stream: a simple `data: omg\n\r\n`.' do
         it 'recognizes simple `data: omg\n\n` pattern as a complete event' do
