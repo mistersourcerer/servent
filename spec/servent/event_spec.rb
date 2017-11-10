@@ -20,4 +20,13 @@ RSpec.describe Servent::Event do
       expect(event).to be_event("omg", "lol")
     end
   end
+
+  context "specification examples" do
+    it "recongnizes the generic multilined event stream" do
+      stream = "data: YHOO\ndata: +2\ndata: 10"
+      event  = described_class.new stream
+
+      expect(event).to be_event("message", "YHOO\n+2\n10")
+    end
+  end
 end

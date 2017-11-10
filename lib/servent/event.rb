@@ -32,7 +32,7 @@ module Servent
 
     def concat_data(data)
       @data << "\n" unless @data.empty?
-      @data << remove_extra_space(data)
+      @data << remove_extra_space(data).chomp
     end
   end
 end
