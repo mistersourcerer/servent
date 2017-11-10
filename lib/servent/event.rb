@@ -18,6 +18,7 @@ module Servent
     end
 
     private
+
     COLON = "\u{003A}".freeze
 
     def parse_line(line)

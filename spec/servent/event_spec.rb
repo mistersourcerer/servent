@@ -10,37 +10,21 @@ RSpec.describe Servent::Event do
     end
 
     context "data:" do
-      context 'happy path stream: a simple `data: omg\n\r\n`.' do
-        it 'recognizes simple `data: omg\n\n` pattern as a complete event' do
-          event.parse "data:omg\n\r\n"
-
-          expect(event).to be_message "data", "omg"
-        end
-
+      context 'happy path stream: a simple `data: omg`' do
         it "remove the first space from `data`" do
-          event.parse "data: omg\n\r\n"
+          event.parse "data: omg"
 
           expect(event).to be_message "data", "omg"
         end
 
-        it 'recognizes when return comes later: `data: omg\n\n\r`' do
-          event.parse "data: omg\n\n\r"
-
-          expect(event).to be_message "data", "omg"
-        end
-
-        it 'recognizes when first line is delimited by \r `data: omg\r\n\r`' do
-          event.parse "data: omg\n\n\r"
-
-          expect(event).to be_message "data", "omg"
-        end
-
-        it 'removes just one space from message `data:\s\somg\r\n\r`' do
-          event.parse "data:\s\somg\r\n\r"
+        it 'removes just one space from message `data:\s\somg`' do
+          event.parse "data:\s\somg"
 
           expect(event).to be_message "data", " omg"
         end
       end
+
+      context "multiline stream"
     end
   end
 end
