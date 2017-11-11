@@ -19,13 +19,11 @@ RSpec.describe Servent::Stream do
     end
 
     context "multiline stream" do
-      context "custom named events" do
-        it 'recognizes a type with its content `event: omg\ndata: lol`' do
-          stream = described_class.new "event: omg\ndata: lol"
-          events = stream.parse
+      it 'generates only one event for the pattern `event: omg\ndata: lol`' do
+        stream = described_class.new "event: omg\ndata: lol"
+        events = stream.parse
 
-          expect(events.count).to eq 1
-        end
+        expect(events.count).to eq 1
       end
     end
   end
