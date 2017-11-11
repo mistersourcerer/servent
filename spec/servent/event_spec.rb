@@ -53,7 +53,7 @@ RSpec.describe Servent::Event do
       end
     end
 
-    it "recognizes many fields `event: omg\ndata: lol\nid:123\nretry:10`" do
+    it 'recognizes many fields `event: omg\ndata: lol\nid:123\nretry:10`' do
       event = described_class.new "event: omg\ndata: lol\nid:123\nretry:10"
 
       expect(event).to be_event("omg", "lol")
