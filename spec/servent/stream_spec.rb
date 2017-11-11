@@ -25,6 +25,50 @@ RSpec.describe Servent::Stream do
 
         expect(events.count).to eq 1
       end
+
+      context "multiple events on the same stream" do
+        it "accumulates all (3) events in the stream" do
+          events = <<~STREAM
+            : test stream
+
+            data: first event
+            id: 1
+
+            data:second event
+            id
+
+            data:  third event
+          STREAM
+          events = described_class.new(events).parse
+
+          expect(events.count).to eq 3
+        end
+      end
+    end
+
+    describe "`Last-Event-ID`" do
+      it 'holds the id received on the `event: omg\ndata: lol\nid:123`' do
+        stream = described_class.new "event: omg\ndata: lol\nid:123"
+        stream.parse
+
+        expect(stream.last_event_id).to eq "123"
+      end
+
+      it "cleans id if consecutive message has a blank one" do
+        events = <<~STREAM
+          : test stream
+
+          data: first event
+          id: 1
+
+          data:second event
+          id
+        STREAM
+        stream = described_class.new(events)
+        stream.parse
+
+        expect(stream.last_event_id).to eq nil
+      end
     end
   end
 end

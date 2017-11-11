@@ -29,6 +29,13 @@ RSpec.describe Servent::Event do
         expect(event).to be_event("omg", "lol")
         expect(event.id).to eq("123")
       end
+
+      it 'recognizes the `id` on an Event `event: omg\ndata: lol\nid`' do
+        event = described_class.new "event: omg\ndata: lol\nid"
+
+        expect(event).to be_event("omg", "lol")
+        expect(event.id).to eq nil
+      end
     end
 
     context "`retry`" do
@@ -53,6 +60,8 @@ RSpec.describe Servent::Event do
       expect(event.id).to eq("123")
       expect(event.retry).to eq 10
     end
+
+    it "handles unexpected fields"
   end
 
   context "specification examples" do
