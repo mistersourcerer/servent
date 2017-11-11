@@ -1,12 +1,15 @@
 module Servent
   class Event
-    attr_reader :type, :data, :id
 
     def initialize(event)
-      @data = ""
+      @data = []
       StringIO.open(event) do |io|
         io.each_line { |line| parse_line line }
       end
+    end
+
+    def data
+      @_data ||= @data.join("\n")
     end
 
     private
@@ -25,7 +28,7 @@ module Servent
         @id = data
       else
         @type = "message" if @type.nil?
-        concat_data data
+        @data << data
       end
     end
 
@@ -34,9 +37,6 @@ module Servent
       raw_data[1..(raw_data.length - 1)]
     end
 
-    def concat_data(data)
-      @data << "\n" unless @data.empty?
-      @data << data
     end
   end
 end

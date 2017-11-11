@@ -2,7 +2,7 @@ module Servent
   class Stream
     def initialize(stream)
       @stream = StringIO.new stream
-      @buffer = ""
+      @buffer = []
       @events = []
     end
 
@@ -35,11 +35,10 @@ module Servent
 
     def flush_buffer
       @events << Event.new(@buffer)
+      @events << Event.new(@buffer.join("\n"))
       @buffer = []
     end
 
-    def buffer_line(line)
-      @buffer << "\n" unless @buffer.empty?
       @buffer << line
     end
   end
