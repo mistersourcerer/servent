@@ -24,6 +24,20 @@ RSpec.describe Servent::Event do
   context "extra fields" do
     it 'recognizes the id on an Event `event: omg\ndata: lol\nid:123`' do
       event = described_class.new "event: omg\ndata: lol\nid: 123"
+    context "`retry`" do
+      it 'recognizes `retry` on an Event `event: omg\ndata: lol\nretry:10`' do
+        event = described_class.new "event: omg\ndata: lol\nretry: 10"
+
+        expect(event).to be_event("omg", "lol")
+        expect(event.retry).to eq 10
+      end
+
+      it "returns zero if can convert retry to int" do
+        event = described_class.new "data: lol\nretry: amagahd"
+
+        expect(event.retry).to eq 0
+      end
+    end
 
       expect(event).to be_event("omg", "lol")
       expect(event.id).to eq("123")

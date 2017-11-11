@@ -1,6 +1,6 @@
 module Servent
   class Event
-    attr_reader :type, :id
+    attr_reader :type, :id, :retry
 
     def initialize(event)
       @data = []
@@ -41,6 +41,9 @@ module Servent
       @id = data
     end
 
+    def field_retry(data)
+      @retry = data.to_i
+    end
 
     def field_data(data)
       @type = "message" if @type.nil?
