@@ -8,37 +8,35 @@ module Servent
 
     def parse
       @stream.each_line { |line|
-        # ignore if line starts with `:` | comment
         next if line.start_with?(Servent::COLON)
         handle_line line
       }
-      flush_buffer unless @buffer.empty?
+      complete_event
       @events
     end
 
     private
 
     def handle_line(line)
-      # Line is empty.
-      # Can be the end of a stream.
-      # Or can be a stream with multiple events
-      if line.chomp.rstrip.empty?
-        # Ignore unless there is a Event been cunstructed
-        return if @buffer.empty?
-        buffer_line line
-        flush_buffer
+      # Line is empty:
+      #  - can be the end of a stream or
+      #  - can be a stream with multiple events
+      if line.strip.chomp.empty?
+        complete_event line
       else
-        # if this line defines a new type, than also generate a new event
-        buffer_line line
+        buffer line
       end
     end
 
-    def flush_buffer
-      @events << Event.new(@buffer)
+    def complete_event(line = nil)
+      return if @buffer.empty?
+      buffer line unless line.nil?
       @events << Event.new(@buffer.join("\n"))
       @buffer = []
     end
 
+    def buffer(line)
+      # TODO: if this line defines a new type, than also #complete_event
       @buffer << line
     end
   end

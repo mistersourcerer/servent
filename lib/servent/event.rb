@@ -1,5 +1,6 @@
 module Servent
   class Event
+    attr_reader :type, :id
 
     def initialize(event)
       @data = []
@@ -16,15 +17,15 @@ module Servent
 
     def parse_line(line)
       return unless line.include?(Servent::COLON)
-      normalize_type_and_data(* line.split(":"))
+      field_name, data = line.split(":")
+      normalized_data = remove_first_space(data).chomp
+      process_as_field field_name, normalized_data
     end
 
-    def normalize_type_and_data(type, data)
-      data = remove_extra_space(data).chomp
-
-      if type == "event"
+    def process_as_field(field_name, data)
+      if field_name == "event"
         @type = data
-      elsif type == "id"
+      elsif field_name == "id"
         @id = data
       else
         @type = "message" if @type.nil?
@@ -32,11 +33,9 @@ module Servent
       end
     end
 
-    def remove_extra_space(raw_data)
-      return raw_data unless raw_data[0] == "\u{0020}"
-      raw_data[1..(raw_data.length - 1)]
-    end
-
+    def remove_first_space(string)
+      return string unless string[0] == "\u{0020}"
+      string[1..(string.length - 1)]
     end
   end
 end
