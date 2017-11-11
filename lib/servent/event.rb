@@ -23,19 +23,28 @@ module Servent
     end
 
     def process_as_field(field_name, data)
-      if field_name == "event"
-        @type = data
-      elsif field_name == "id"
-        @id = data
-      else
-        @type = "message" if @type.nil?
-        @data << data
-      end
+      return unless KNOWN_EVENTS.include?(field_name)
+      field_handler = method("field_#{field_name}")
+      field_handler.call data
     end
 
     def remove_first_space(string)
       return string unless string[0] == "\u{0020}"
       string[1..(string.length - 1)]
+    end
+
+    def field_event(data)
+      @type = data
+    end
+
+    def field_id(data)
+      @id = data
+    end
+
+
+    def field_data(data)
+      @type = "message" if @type.nil?
+      @data << data
     end
   end
 end
