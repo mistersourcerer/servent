@@ -70,5 +70,22 @@ RSpec.describe Servent::Stream do
         expect(stream.last_event_id).to eq nil
       end
     end
+
+    describe "#reconnection_time" do
+      it "stores the time defined by the last event (with the field)" do
+        events = <<~STREAM
+          data: first event
+          retry: 1
+
+          data:second event
+          retry: 2
+        STREAM
+
+        stream = described_class.new(events)
+        stream.parse
+
+        expect(stream.reconnection_time).to eq 2
+      end
+    end
   end
 end

@@ -1,6 +1,6 @@
 module Servent
   class Stream
-    attr_reader :last_event_id
+    attr_reader :last_event_id, :reconnection_time
 
     def initialize(stream)
       @stream = StringIO.new stream
@@ -32,12 +32,16 @@ module Servent
 
     def complete_event(line = nil)
       return if @buffer.empty?
-
       buffer line unless line.nil?
-      event = Event.new(@buffer.join("\n"))
-      @events << event
-      @last_event_id = event.id
+      @events << create_event
       @buffer = []
+    end
+
+    def create_event
+      event = Event.new(@buffer.join("\n"))
+      @last_event_id = event.id
+      @reconnection_time = event.retry
+      event
     end
 
     def buffer(line)
