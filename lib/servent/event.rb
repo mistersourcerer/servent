@@ -1,5 +1,13 @@
 module Servent
   class Event
+    class InvalidError < StandardError
+      attr_reader :event
+
+      def initialize(event)
+        @event = event
+      end
+    end
+
     attr_reader :type, :id, :retry
 
     def initialize(event)
@@ -7,6 +15,8 @@ module Servent
       StringIO.open(event) do |io|
         io.each_line { |line| parse_line line }
       end
+
+      raise InvalidError.new(event) if empty?
     end
 
     def data
@@ -20,6 +30,10 @@ module Servent
       field_name, data = line.split(":")
       normalized_data = remove_first_space(data).chomp
       process_as_field field_name, normalized_data
+    end
+
+    def empty?
+      data.empty? && type.nil? && id.nil? && @retry.nil?
     end
 
     def process_as_field(field_name, data)

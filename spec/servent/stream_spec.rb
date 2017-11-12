@@ -18,6 +18,14 @@ RSpec.describe Servent::Stream do
       end
     end
 
+    context "unknown fields" do
+      it "don't explodes when trying create a invalid (unkown field) event" do
+        expect {
+          described_class.new("neh: boom!").parse
+        }.to_not raise_error
+      end
+    end
+
     context "multiline stream" do
       it 'generates only one event for the pattern `event: omg\ndata: lol`' do
         stream = described_class.new "event: omg\ndata: lol"

@@ -53,15 +53,29 @@ RSpec.describe Servent::Event do
       end
     end
 
+    describe "handles unexpected fields" do
+      it "raises?" do
+        expect {
+          described_class.new "omg: lol"
+        }.to raise_error Servent::Event::InvalidError
+      end
+
+      it "ignores unknow fields among expected ones" do
+        event = described_class.new "omg: lol\ndata: bbq\nid:123\nretry:10"
+
+        expect(event).to be_event("message", "bbq")
+        expect(event.id).to eq "123"
+        expect(event.retry).to eq 10
+      end
+    end
+
     it 'recognizes many fields `event: omg\ndata: lol\nid:123\nretry:10`' do
       event = described_class.new "event: omg\ndata: lol\nid:123\nretry:10"
 
       expect(event).to be_event("omg", "lol")
-      expect(event.id).to eq("123")
+      expect(event.id).to eq "123"
       expect(event.retry).to eq 10
     end
-
-    it "handles unexpected fields"
   end
 
   context "specification examples" do

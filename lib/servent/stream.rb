@@ -38,7 +38,11 @@ module Servent
     end
 
     def create_event
-      event = Event.new(@buffer.join("\n"))
+      begin
+        event = Event.new(@buffer.join("\n"))
+      rescue Servent::Event::InvalidError
+        return
+      end
       @last_event_id = event.id
       @reconnection_time = event.retry
       event
