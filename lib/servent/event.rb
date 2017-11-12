@@ -1,38 +1,67 @@
 module Servent
   class Event
-    attr_reader :type, :data
+    class InvalidError < StandardError
+      attr_reader :event
+
+      def initialize(event)
+        @event = event
+      end
+    end
+
+    attr_reader :type, :id, :retry
 
     def initialize(event)
-      @data = ""
+      @data = []
       StringIO.open(event) do |io|
         io.each_line { |line| parse_line line }
       end
+
+      raise InvalidError.new(event) if empty?
+    end
+
+    def data
+      @_data ||= @data.join("\n")
     end
 
     private
 
     def parse_line(line)
       return unless line.include?(Servent::COLON)
-      normalize_type_and_data(* line.split(":"))
+      field_name, data = line.split(":")
+      normalized_data = remove_first_space(data).chomp
+      process_as_field field_name, normalized_data
     end
 
-    def normalize_type_and_data(type, data)
-      if type == "event"
-        @type = remove_extra_space data.chomp
-      else
-        @type = "data" if @type.nil?
-        concat_data data
-      end
+    def empty?
+      data.empty? && type.nil? && id.nil? && @retry.nil?
     end
 
-    def remove_extra_space(raw_data)
-      return raw_data unless raw_data[0] == "\u{0020}"
-      raw_data[1..(raw_data.length - 1)]
+    def process_as_field(field_name, data)
+      return unless KNOWN_EVENTS.include?(field_name)
+      field_handler = method("field_#{field_name}")
+      field_handler.call data
     end
 
-    def concat_data(data)
-      @data << "\n" unless @data.empty?
-      @data << remove_extra_space(data)
+    def remove_first_space(string)
+      return string unless string[0] == "\u{0020}"
+      string[1..(string.length - 1)]
+    end
+
+    def field_event(data)
+      @type = data
+    end
+
+    def field_id(data)
+      @id = data
+    end
+
+    def field_retry(data)
+      @retry = data.to_i
+    end
+
+    def field_data(data)
+      @type = "message" if @type.nil?
+      @data << data
     end
   end
 end
