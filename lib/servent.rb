@@ -1,3 +1,4 @@
+require "faraday"
 require "servent/version"
 require "servent/event_source"
 
