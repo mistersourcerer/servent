@@ -76,6 +76,14 @@ RSpec.describe Servent::Event do
       expect(event.id).to eq "123"
       expect(event.retry).to eq 10
     end
+
+    context "repeated (unexpected) valid fields" do
+      it 'uses last value: `event: omg\ndata: lol\nevent:add`' do
+        event = described_class.new "event: omg\ndata: lol\nevent:add"
+
+        expect(event).to be_event("add", "lol")
+      end
+    end
   end
 
   context "specification examples" do
