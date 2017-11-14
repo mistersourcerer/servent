@@ -41,12 +41,13 @@ RSpec.describe Servent::EventSource do
       }.to yield_with_args(Faraday::Request)
     end
 
-    context "reconnection"
     it "sets #ready_state with 1 as per spec" do
       expect { event_source.start.join }
         .to change { event_source.ready_state }.from(0).to(1)
     end
   end
+
+  context "reconnection"
 
   context "events" do
     before do
