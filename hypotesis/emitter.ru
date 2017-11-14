@@ -33,6 +33,15 @@ server.mount_proc "/" do |_, res|
   res.chunked = true
 end
 
+server.mount_proc "/omg" do |_, res|
+  r, w = IO.pipe
+  clients << w
+
+  res.content_type = "text/event-stream"
+  res.body = r
+  res.chunked = true
+end
+
 server.mount_proc "/broadcast" do |_, _|
   clients.each do |client|
     Thread.new do
