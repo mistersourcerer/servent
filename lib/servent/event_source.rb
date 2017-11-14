@@ -1,25 +1,37 @@
 require "servent/stream"
 require "servent/event"
+require "net/http"
 
 module Servent
   class EventSource
     attr_reader :ready_state
 
-    def initialize(url, adapter: nil, &configurator)
-      @uri     = URI(url)
-      adapter  = create_faraday(&configurator) if adapter.nil?
-      @adapter = adapter
-
+    def initialize(url,
+                   proxy_host: nil,
+                   proxy_port: nil,
+                   proxy_user: nil,
+                   proxy_pass: nil,
+                   net_http_options: { read_timeout: 600 }
+                  )
+      @uri = URI(url)
       @ready_state = Servent::CONNECTING
     end
 
-    def start
+    def start(requester = nil)
       Thread.new do
-        @adapter.get(@uri.path) do |req|
-          req.headers["Accept"] = "text/event-stream"
-          yield(req) if block_given?
-          @ready_state = Servent::OPEN
-          @open_block.call unless @open_block.nil?
+        Net::HTTP.start(@uri.host, @uri.port, read_timeout: 600) do |http|
+          requester ||= http
+          get = Net::HTTP::Get.new @uri
+          get["Accept"] = "text/event-stream"
+          yield(http, get) if block_given?
+
+          requester.request(get) do |response|
+            @ready_state = Servent::OPEN
+            @open_block.call(response) unless @open_block.nil?
+
+            # response.read_body do |chunk|
+            # end
+          end
         end
       end
     end

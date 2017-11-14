@@ -1,44 +1,28 @@
 RSpec.describe Servent::EventSource do
   let(:url) { "http://example.com/event-stream" }
-  let(:stubs) { Faraday::Adapter::Test::Stubs.new }
-  let(:adapter) {
-    Faraday.new do |builder|
-      builder.adapter :test, stubs
-    end
+  let!(:stub) {
+    stub_request(:get, url)
+      .with(body: "", headers: { "Accept" => "text/event-stream" })
   }
 
-  subject(:event_source) { described_class.new url, adapter: adapter }
+  subject(:event_source) { described_class.new url }
 
   describe ".new" do
-    it "yields the `Faraday` object for further (client) connection" do
-      expect { |configuration_block|
-        described_class.new(url, &configuration_block)
-      }.to yield_with_args(Faraday::Connection)
-    end
-
     it "initializes #ready_state with 0 as per spec" do
       expect(event_source.ready_state).to eq 0
     end
   end
 
   describe "#start" do
-    before do
-      stubs.get("/event-stream") do |env|
-        expect(env.request_headers["Accept"]).to eq "text/event-stream"
-        [200, {}, ""]
-      end
-    end
-
-    it "sends a GET request with right headers" do
+    it "sends a GET request with right header (text/event-stream)" do
       event_source.start.join
-
-      stubs.verify_stubbed_calls
+      expect(stub).to have_been_requested
     end
 
-    it "yields the (faraday) request object to a block if it is passed" do
+    it "yields the HTTP and the Get objects to a block" do
       expect { |configuration_block|
         event_source.start(&configuration_block).join
-      }.to yield_with_args(Faraday::Request)
+      }.to yield_with_args(Net::HTTP, Net::HTTP::Get)
     end
 
     it "sets #ready_state with 1 as per spec" do
@@ -50,13 +34,6 @@ RSpec.describe Servent::EventSource do
   context "reconnection"
 
   context "events" do
-    before do
-      stubs.get("/event-stream") do |env|
-        expect(env.request_headers["Accept"]).to eq "text/event-stream"
-        [200, {}, ""]
-      end
-    end
-
     describe "#on_open" do
       it "stores the parameter block to be called later when opening con" do
         expect { |on_open_block|

@@ -1,4 +1,3 @@
-require "faraday"
 require "servent/version"
 require "servent/event_source"
 
@@ -8,4 +7,5 @@ module Servent
 
   CONNECTING = 0
   OPEN       = 1
+  CLOSED     = 2
 end
