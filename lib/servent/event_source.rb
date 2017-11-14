@@ -19,7 +19,13 @@ module Servent
           req.headers["Accept"] = "text/event-stream"
           yield(req) if block_given?
           @ready_state = Servent::OPEN
+          @open_block.call unless @open_block.nil?
+        end
       end
+    end
+
+    def on_open(&open_block)
+      @open_block = open_block
     end
 
     private

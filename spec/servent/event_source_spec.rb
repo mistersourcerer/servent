@@ -49,7 +49,22 @@ RSpec.describe Servent::EventSource do
   end
 
   context "events" do
-    describe "#on_open"
+    before do
+      stubs.get("/event-stream") do |env|
+        expect(env.request_headers["Accept"]).to eq "text/event-stream"
+        [200, {}, ""]
+      end
+    end
+
+    describe "#on_open" do
+      it "stores the parameter block to be called later when opening con" do
+        expect { |on_open_block|
+          event_source.on_open(&on_open_block)
+          event_source.start.join
+        }.to yield_control
+      end
+    end
+
     describe "#on_message"
     describe "#on_error"
   end
