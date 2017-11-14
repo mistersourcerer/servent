@@ -15,6 +15,10 @@ RSpec.describe Servent::EventSource do
         described_class.new(url, &configuration_block)
       }.to yield_with_args(Faraday::Connection)
     end
+
+    it "initializes #ready_state with 0 as per spec" do
+      expect(event_source.ready_state).to eq 0
+    end
   end
 
   describe "#start" do
@@ -38,6 +42,10 @@ RSpec.describe Servent::EventSource do
     end
 
     context "reconnection"
+    it "sets #ready_state with 1 as per spec" do
+      expect { event_source.start.join }
+        .to change { event_source.ready_state }.from(0).to(1)
+    end
   end
 
   context "events" do
