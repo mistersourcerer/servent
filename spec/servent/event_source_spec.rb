@@ -26,14 +26,14 @@ RSpec.describe Servent::EventSource do
     end
 
     it "sends a GET request with right headers" do
-      event_source.start
+      event_source.start.join
 
       stubs.verify_stubbed_calls
     end
 
     it "yields the (faraday) request object to a block if it is passed" do
       expect { |configuration_block|
-        event_source.start(&configuration_block)
+        event_source.start(&configuration_block).join
       }.to yield_with_args(Faraday::Request)
     end
 

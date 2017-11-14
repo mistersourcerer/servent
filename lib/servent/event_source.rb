@@ -10,9 +10,10 @@ module Servent
     end
 
     def start
-      @adapter.get(@uri.path) do |req|
-        req.headers["Accept"] = "text/event-stream"
-        yield(req) if block_given?
+      Thread.new do
+        @adapter.get(@uri.path) do |req|
+          req.headers["Accept"] = "text/event-stream"
+          yield(req) if block_given?
       end
     end
 
