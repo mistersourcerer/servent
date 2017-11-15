@@ -21,6 +21,7 @@ RSpec.describe Servent::EventSource do
   describe "#start" do
     it "sends a GET request with right header (text/event-stream)" do
       event_source.start.join
+
       expect(stub).to have_been_requested
     end
 
@@ -46,20 +47,19 @@ RSpec.describe Servent::EventSource do
 
         http_starter = double(Net::HTTP)
         expect(http_starter).to receive(:start)
-          .with(
-            "example.com",
-            8080,
-            "http://proxy.omg",
-            443,
-            "user",
-            "pass",
-            Hash)
+          .with("example.com",
+                8080,
+                "http://proxy.omg",
+                443,
+                "user",
+                "pass",
+                Hash)
 
         event_source.start(http_starter).join
       end
 
       it "passes the http extra options when they are available" do
-        options = {read_timeout: 30}
+        options = { read_timeout: 30 }
         event_source = described_class.new(
           "http://example.com",
           net_http_options: options
