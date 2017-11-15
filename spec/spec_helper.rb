@@ -1,6 +1,7 @@
 require "bundler/setup"
 require "servent"
 require "webmock/rspec"
+require "pry-byebug"
 
 spec_dir = File.expand_path("../", __FILE__)
 Dir["#{spec_dir}/support/**/*.rb"].each { |f| require f }
