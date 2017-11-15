@@ -43,12 +43,6 @@ module Servent
         # end
       end
     end
-
-    def create_faraday
-      Faraday.new(url: @uri) do |faraday|
-        yield(faraday) if block_given?
-      end
-    end
   end
 
   class ProxyConfig
