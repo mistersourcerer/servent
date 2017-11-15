@@ -10,7 +10,8 @@ RSpec.describe Servent::EventSource do
   let!(:stub) {
     stub_request(:get, url)
       .with(headers: { "Accept" => "text/event-stream" })
-      .to_return(body: body)
+      .to_return(body: body,
+                 headers: { "Content-Type" => "text/event-stream" })
   }
 
   subject(:event_source) { described_class.new url }
@@ -81,7 +82,27 @@ RSpec.describe Servent::EventSource do
     end
   end
 
-  context "reconnection"
+  context "http connection" do
+    context "when response mime type is not text/event-stream" do
+      let(:stub) {
+        stub_request(:get, url)
+          .with(headers: { "Accept" => "text/event-stream" })
+          .to_return(body: body,
+                     headers: { "Content-Type" => "text/omg-lol" })
+      }
+
+      it "does not open the connection" do
+        expect { |open_block| event_source.on_open(&open_block) }
+          .to_not yield_control
+        event_source.start.join
+
+        expect(event_source.ready_state).to eq Servent::CLOSED
+      end
+    end
+
+    context "reconnection"
+  end
+
 
   context "events" do
     describe "#on_open" do

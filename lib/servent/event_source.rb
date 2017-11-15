@@ -46,12 +46,20 @@ module Servent
 
     def perform_request(http, type)
       http.request type do |response|
-        @ready_state = Servent::OPEN
-        @open_blocks.each { |block| block.call(response) }
-
-        response.read_body do |chunk|
-          @message_blocks.each { |block| block.call chunk }
+        unless response["Content-Type"] == "text/event-stream"
+          @ready_state = Servent::CLOSED
+          return
         end
+
+        handle_response response
+      end
+    end
+
+    def handle_response(response)
+      @ready_state = Servent::OPEN
+      @open_blocks.each { |block| block.call response }
+      response.read_body do |chunk|
+        @message_blocks.each { |block| block.call chunk }
       end
     end
   end
