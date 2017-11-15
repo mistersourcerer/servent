@@ -13,6 +13,8 @@ module Servent
 
       @open_blocks    = []
       @message_blocks = []
+      @error_blocks   = []
+
       @proxy_config = ProxyConfig.new
       yield @proxy_config if block_given?
     end
@@ -38,6 +40,10 @@ module Servent
       @message_blocks << message_block
     end
 
+    def on_error(&error_block)
+      @error_blocks << error_block
+    end
+
     private
 
     def headers
@@ -46,8 +52,10 @@ module Servent
 
     def perform_request(http, type)
       http.request type do |response|
+        # FIXME: response CAN have more than one mime type
         unless response["Content-Type"] == "text/event-stream"
           @ready_state = Servent::CLOSED
+          @error_blocks.each { |block| block.call response, :wrong_mime_type }
           return
         end
 

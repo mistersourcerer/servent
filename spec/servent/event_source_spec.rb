@@ -94,15 +94,22 @@ RSpec.describe Servent::EventSource do
       it "does not open the connection" do
         expect { |open_block| event_source.on_open(&open_block) }
           .to_not yield_control
+
         event_source.start.join
 
         expect(event_source.ready_state).to eq Servent::CLOSED
+      end
+
+      it "yields the `on_error` block" do
+        expect { |error_block|
+          event_source.on_error(&error_block)
+          event_source.start.join
+        }.to yield_with_args(Net::HTTPResponse, :wrong_mime_type)
       end
     end
 
     context "reconnection"
   end
-
 
   context "events" do
     describe "#on_open" do
