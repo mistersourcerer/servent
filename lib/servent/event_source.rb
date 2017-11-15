@@ -6,33 +6,34 @@ module Servent
   class EventSource
     attr_reader :ready_state
 
-    def initialize(url,
-                   proxy_host: nil,
-                   proxy_port: nil,
-                   proxy_user: nil,
-                   proxy_pass: nil,
-                   net_http_options: { read_timeout: 600 }
-                  )
-      @uri = URI(url)
-      @ready_state = Servent::CONNECTING
+    def initialize(url, net_http_options: { read_timeout: 600 })
+      @uri              = URI(url)
+      @net_http_options = net_http_options
+      @ready_state      = Servent::CONNECTING
+
+      @proxy_config     = ProxyConfig.new
+      yield @proxy_config if block_given?
     end
 
-    def start(requester = nil)
+    def start(http_starter = Net::HTTP)
+      params = HTTPStartParams.new(@uri, @proxy_config, @net_http_options)
       Thread.new do
-        Net::HTTP.start(@uri.host, @uri.port, read_timeout: 600) do |http|
-          requester ||= http
+        http_starter.start(*params.parameterize) do |http|
           get = Net::HTTP::Get.new @uri
           get["Accept"] = "text/event-stream"
           yield(http, get) if block_given?
-
-          requester.request(get) do |response|
-            @ready_state = Servent::OPEN
-            @open_block.call(response) unless @open_block.nil?
-
-            # response.read_body do |chunk|
-            # end
-          end
+          perform_request http, get
         end
+      end
+    end
+
+    def perform_request(http, type)
+      http.request type do |response|
+        @ready_state = Servent::OPEN
+        @open_block.call(response) unless @open_block.nil?
+
+        # response.read_body do |chunk|
+        # end
       end
     end
 
@@ -46,6 +47,38 @@ module Servent
       Faraday.new(url: @uri) do |faraday|
         yield(faraday) if block_given?
       end
+    end
+  end
+
+  class ProxyConfig
+    attr_accessor :host, :user, :pass
+    attr_writer   :port
+
+    def port
+      @port.to_i
+    end
+
+    def empty?
+      @host.nil? && @port.nil? && @user.nil? && @pass.nil?
+    end
+
+    def parameterize
+      [host, port, user, pass]
+    end
+  end
+
+  class HTTPStartParams
+    def initialize(uri, proxy_config, options)
+      @uri          = uri
+      @proxy_config = proxy_config
+      @options      = options
+    end
+
+    def parameterize
+      params = [@uri.host, @uri.port]
+      params+= @proxy_config.parameterize unless @proxy_config.empty?
+      params<< @options
+      params
     end
   end
 end
