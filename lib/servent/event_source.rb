@@ -18,20 +18,25 @@ module Servent
 
     def start(http_starter = Net::HTTP)
       params = HTTPStartParams.new(@uri, @proxy_config, @net_http_options)
-      Thread.new do
+
+      Thread.new {
         http_starter.start(*params.parameterize) do |http|
           get = Net::HTTP::Get.new @uri
-          get["Accept"] = "text/event-stream"
-          yield(http, get) if block_given?
+          headers.each { |header, value| get[header] = value }
+          yield http, get if block_given?
           perform_request http, get
         end
-      end
+      }
+    end
 
     def on_open(&open_block)
       @open_blocks << open_block
     end
 
     private
+
+    def headers
+      { "Accept" => "text/event-stream" }
     end
 
     def perform_request(http, type)
