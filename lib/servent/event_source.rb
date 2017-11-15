@@ -12,6 +12,7 @@ module Servent
       @ready_state      = Servent::CONNECTING
 
       @open_blocks    = []
+      @message_blocks = []
       @proxy_config = ProxyConfig.new
       yield @proxy_config if block_given?
     end
@@ -33,6 +34,10 @@ module Servent
       @open_blocks << open_block
     end
 
+    def on_message(&message_block)
+      @message_blocks << message_block
+    end
+
     private
 
     def headers
@@ -44,8 +49,9 @@ module Servent
         @ready_state = Servent::OPEN
         @open_blocks.each { |block| block.call(response) }
 
-        # response.read_body do |chunk|
-        # end
+        response.read_body do |chunk|
+          @message_blocks.each { |block| block.call chunk }
+        end
       end
     end
   end

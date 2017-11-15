@@ -1,8 +1,16 @@
 RSpec.describe Servent::EventSource do
   let(:url) { "http://example.com/event-stream" }
+  let(:body) {
+    <<~BODY
+      event: omg
+      id: 42
+      data: this is a message!
+    BODY
+  }
   let!(:stub) {
     stub_request(:get, url)
-      .with(body: "", headers: { "Accept" => "text/event-stream" })
+      .with(headers: { "Accept" => "text/event-stream" })
+      .to_return(body: body)
   }
 
   subject(:event_source) { described_class.new url }
@@ -77,7 +85,7 @@ RSpec.describe Servent::EventSource do
 
   context "events" do
     describe "#on_open" do
-      it "stores the parameter block to be called later when opening con" do
+      it "stores the block to be called later when opening con" do
         expect { |on_open_block|
           event_source.on_open(&on_open_block)
           event_source.start.join
@@ -96,7 +104,26 @@ RSpec.describe Servent::EventSource do
       end
     end
 
-    describe "#on_message"
+    describe "#on_message" do
+      it "stores a block to be called when a message arrives" do
+        expect { |on_message_block|
+          event_source.on_message(&on_message_block)
+          event_source.start.join
+        }.to yield_with_args body
+      end
+
+      it "allows more than one block to executed `on_message`" do
+        first_block  = -> {}
+        second_block = -> {}
+        event_source.on_message(&first_block)
+        event_source.on_message(&second_block)
+        expect(first_block).to receive(:call)
+        expect(second_block).to receive(:call)
+
+        event_source.start.join
+      end
+    end
+
     describe "#on_error"
   end
 
