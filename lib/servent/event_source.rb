@@ -11,7 +11,8 @@ module Servent
       @net_http_options = net_http_options
       @ready_state      = Servent::CONNECTING
 
-      @proxy_config     = ProxyConfig.new
+      @open_blocks    = []
+      @proxy_config = ProxyConfig.new
       yield @proxy_config if block_given?
     end
 
@@ -25,23 +26,23 @@ module Servent
           perform_request http, get
         end
       end
+
+    def on_open(&open_block)
+      @open_blocks << open_block
+    end
+
+    private
     end
 
     def perform_request(http, type)
       http.request type do |response|
         @ready_state = Servent::OPEN
-        @open_block.call(response) unless @open_block.nil?
+        @open_blocks.each { |block| block.call(response) }
 
         # response.read_body do |chunk|
         # end
       end
     end
-
-    def on_open(&open_block)
-      @open_block = open_block
-    end
-
-    private
 
     def create_faraday
       Faraday.new(url: @uri) do |faraday|
@@ -76,8 +77,8 @@ module Servent
 
     def parameterize
       params = [@uri.host, @uri.port]
-      params+= @proxy_config.parameterize unless @proxy_config.empty?
-      params<< @options
+      params += @proxy_config.parameterize unless @proxy_config.empty?
+      params << @options
       params
     end
   end

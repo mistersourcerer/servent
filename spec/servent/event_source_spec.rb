@@ -83,6 +83,17 @@ RSpec.describe Servent::EventSource do
           event_source.start.join
         }.to yield_control
       end
+
+      it "allows more than one block to executed `on_open`" do
+        first_block  = -> {}
+        second_block = -> {}
+        event_source.on_open(&first_block)
+        event_source.on_open(&second_block)
+        expect(first_block).to receive(:call)
+        expect(second_block).to receive(:call)
+
+        event_source.start.join
+      end
     end
 
     describe "#on_message"
