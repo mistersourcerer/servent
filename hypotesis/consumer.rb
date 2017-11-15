@@ -7,10 +7,12 @@ trap :INT do
 end
 
 Thread.new do
-  uri = URI("http://localhost:9292")
+  uri = URI("http://localhost:9292/omg")
 
   Net::HTTP.start(uri.host, uri.port, read_timeout: 600) do |http|
-    http.request_get "/", "Accept" => "text/event-stream" do |response|
+    get = Net::HTTP::Get.new uri
+    get["Accept"] = "text/event-stream"
+    http.request(get) do |response|
       response.read_body do |chunk|
         q.push chunk
       end
