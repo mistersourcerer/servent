@@ -4,6 +4,8 @@ require "net/http"
 
 module Servent
   class EventSource
+    DEFAULT_HEADERS = { "Accept" => "text/event-stream" }
+
     attr_reader :ready_state
 
     def initialize(url, net_http_options: { read_timeout: 600 })
@@ -26,8 +28,9 @@ module Servent
       Thread.new {
         @http_starter.start(*params.parameterize) do |http|
           get = Net::HTTP::Get.new @uri
-          headers.each { |header, value| get[header] = value }
+          DEFAULT_HEADERS.each { |header, value| get[header] = value }
           yield http, get if block_given?
+
           perform_request http, get
         end
       }
@@ -50,10 +53,6 @@ module Servent
     end
 
     private
-
-    def headers
-      { "Accept" => "text/event-stream" }
-    end
 
     def perform_request(http, type)
       http.request type do |response|
