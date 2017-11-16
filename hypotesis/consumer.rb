@@ -3,6 +3,12 @@ $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "servent"
 require "pp"
 
+event_source = Servent::EventSource.new("http://localhost:9292/omg")
+event_source.on_message do |message|
+  pp message
+end
+event_source.listen
+
 #q = Queue.new
 #
 #trap :INT do
@@ -24,12 +30,12 @@ require "pp"
 #  end
 #end
 
-event_source = Servent::EventSource.new("http://localhost:9292/omg")
-event_source.on_message do |message|
-  #q.push message
-  pp message
-end
-event_source.listen
+#event_source = Servent::EventSource.new("http://localhost:9292/omg")
+#event_source.on_message do |message|
+#  #q.push message
+#  pp message
+#end
+#event_source.listen
 
 #while (chunk = q.pop)
 #  puts chunk
