@@ -9,7 +9,6 @@ RSpec.describe Servent::EventSource do
   }
   let(:headers) { { "Accept" => "text/event-stream" } }
   let(:response_headers) { { "Content-Type" => "text/event-stream" } }
-
   let(:stub) {
     stub_request(:get, url)
       .with(headers: headers)
@@ -85,6 +84,27 @@ RSpec.describe Servent::EventSource do
 
         event_source.start(http_starter).join
       end
+    end
+  end
+
+  describe "#listen" do
+    it "starts and joins the internal thread in one go" do
+      fake_thread = double(Thread)
+      allow(event_source).to receive(:start).and_return fake_thread
+      expect(fake_thread).to receive(:join)
+
+      event_source.listen
+    end
+
+    it "repasses 'http_starter' if one is passed to listen" do
+      http_starter = double(Net::HTTP)
+      fake_thread = double(Thread)
+      allow(event_source).to receive(:start)
+        .with(http_starter)
+        .and_return fake_thread
+      expect(fake_thread).to receive(:join)
+
+      event_source.listen http_starter
     end
   end
 

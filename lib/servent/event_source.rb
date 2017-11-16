@@ -32,6 +32,10 @@ module Servent
       }
     end
 
+    def listen(http_starter = Net::HTTP)
+      start(http_starter).join
+    end
+
     def on_open(&open_block)
       @open_blocks << open_block
     end
