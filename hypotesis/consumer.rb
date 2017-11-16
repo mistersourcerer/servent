@@ -29,7 +29,7 @@ event_source.on_message do |message|
   #q.push message
   pp message
 end
-event_source.start.join
+event_source.listen
 
 #while (chunk = q.pop)
 #  puts chunk
