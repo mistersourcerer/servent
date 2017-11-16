@@ -7,14 +7,20 @@ RSpec.describe Servent::EventSource do
       data: this is a message!
     BODY
   }
-  let!(:stub) {
+  let(:headers) { { "Accept" => "text/event-stream" } }
+  let(:response_headers) { { "Content-Type" => "text/event-stream" } }
+
+  let(:stub) {
     stub_request(:get, url)
-      .with(headers: { "Accept" => "text/event-stream" })
-      .to_return(body: body,
-                 headers: { "Content-Type" => "text/event-stream" })
+      .with(headers: headers)
+      .to_return(body: body, headers: response_headers)
   }
 
   subject(:event_source) { described_class.new url }
+
+  before do
+    stub
+  end
 
   describe ".new" do
     it "initializes #ready_state with 0 as per spec" do
@@ -84,17 +90,11 @@ RSpec.describe Servent::EventSource do
 
   context "http connection" do
     context "when response mime type is not text/event-stream" do
-      let(:stub) {
-        stub_request(:get, url)
-          .with(headers: { "Accept" => "text/event-stream" })
-          .to_return(body: body,
-                     headers: { "Content-Type" => "text/omg-lol" })
-      }
+      let(:response_headers) { { "Content-Type" => "text/omg-lol" } }
 
       it "does not open the connection" do
         expect { |open_block| event_source.on_open(&open_block) }
           .to_not yield_control
-
         event_source.start.join
 
         expect(event_source.ready_state).to eq Servent::CLOSED
