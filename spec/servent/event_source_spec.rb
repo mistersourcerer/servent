@@ -7,14 +7,19 @@ RSpec.describe Servent::EventSource do
       data: this is a message!
     BODY
   }
-  let!(:stub) {
+  let(:headers) { { "Accept" => "text/event-stream" } }
+  let(:response_headers) { { "Content-Type" => "text/event-stream" } }
+  let(:stub) {
     stub_request(:get, url)
-      .with(headers: { "Accept" => "text/event-stream" })
-      .to_return(body: body,
-                 headers: { "Content-Type" => "text/event-stream" })
+      .with(headers: headers)
+      .to_return(body: body, headers: response_headers)
   }
 
   subject(:event_source) { described_class.new url }
+
+  before do
+    stub
+  end
 
   describe ".new" do
     it "initializes #ready_state with 0 as per spec" do
@@ -82,19 +87,34 @@ RSpec.describe Servent::EventSource do
     end
   end
 
+  describe "#listen" do
+    it "starts and joins the internal thread in one go" do
+      fake_thread = double(Thread)
+      allow(event_source).to receive(:start).and_return fake_thread
+      expect(fake_thread).to receive(:join)
+
+      event_source.listen
+    end
+
+    it "repasses 'http_starter' if one is passed to listen" do
+      http_starter = double(Net::HTTP)
+      fake_thread = double(Thread)
+      allow(event_source).to receive(:start)
+        .with(http_starter)
+        .and_return fake_thread
+      expect(fake_thread).to receive(:join)
+
+      event_source.listen http_starter
+    end
+  end
+
   context "http connection" do
     context "when response mime type is not text/event-stream" do
-      let(:stub) {
-        stub_request(:get, url)
-          .with(headers: { "Accept" => "text/event-stream" })
-          .to_return(body: body,
-                     headers: { "Content-Type" => "text/omg-lol" })
-      }
+      let(:response_headers) { { "Content-Type" => "text/omg-lol" } }
 
       it "does not open the connection" do
         expect { |open_block| event_source.on_open(&open_block) }
           .to_not yield_control
-
         event_source.start.join
 
         expect(event_source.ready_state).to eq Servent::CLOSED

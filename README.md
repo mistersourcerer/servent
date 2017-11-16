@@ -29,15 +29,8 @@ gem 'servent'
 #   id: 42
 #   data: Omg! Hello World.
 
-events = Queue.new
-
 event_source = Servent::EventSource.new("http://example.org/event-source")
 event_source.on_message do |message|
-  events.push message
-end
-event_source.start
-
-while (event = events.pop)
   puts "Event type: #{event.type}"
   puts "Event body: #{event.body}"
 
@@ -49,6 +42,10 @@ while (event = events.pop)
   #   ```
   # And wait for the next event to arrive.
 end
+
+# join the internal event source thread
+# so we can receive event until it terminates:
+event_source.listen
 ```
 
 ## Development
