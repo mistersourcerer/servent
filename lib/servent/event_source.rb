@@ -56,7 +56,7 @@ module Servent
 
     def perform_request(http, type)
       http.request type do |response|
-        return fail_connection(response) if should_fail?(response)
+        return fail_connection response if should_fail?(response)
         return schedule_reconnection if should_reconnect?(response)
         open_connection response
       end
@@ -75,8 +75,9 @@ module Servent
         !Servent::KNOWN_STATUSES.include?(response.code.to_i)
     end
 
-    def schedule_reconnection
-      start
+    def fail_connection(response)
+      @ready_state = Servent::CLOSED
+      @error_blocks.each { |block| block.call response, :wrong_mime_type }
     end
 
     def should_reconnect?(response)
@@ -84,9 +85,8 @@ module Servent
       @reconnection_codes.include? response.code.to_i
     end
 
-    def fail_connection(response)
-      @ready_state = Servent::CLOSED
-      @error_blocks.each { |block| block.call response, :wrong_mime_type }
+    def schedule_reconnection
+      start
     end
   end
 
