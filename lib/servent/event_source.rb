@@ -20,10 +20,11 @@ module Servent
     end
 
     def start(http_starter = Net::HTTP)
+      @http_starter ||= http_starter
       params = HTTPStartParams.new(@uri, @proxy_config, @net_http_options)
 
       Thread.new {
-        http_starter.start(*params.parameterize) do |http|
+        @http_starter.start(*params.parameterize) do |http|
           get = Net::HTTP::Get.new @uri
           headers.each { |header, value| get[header] = value }
           yield http, get if block_given?
@@ -56,9 +57,14 @@ module Servent
 
     def perform_request(http, type)
       http.request type do |response|
-        # FIXME: response CAN have more than one mime type
         return fail_connection(response) if should_fail?(response)
-        handle_response response
+        return schedule_reconnection if should_reconnect?(response)
+
+        @ready_state = Servent::OPEN
+        @open_blocks.each { |block| block.call response }
+        response.read_body do |chunk|
+          @message_blocks.each { |block| block.call chunk }
+        end
       end
     end
 
@@ -67,17 +73,18 @@ module Servent
         !Servent::KNOWN_STATUSES.include?(response.code.to_i)
     end
 
+    def schedule_reconnection
+      start
+    end
+
+    def should_reconnect?(response)
+      @reconnection_codes ||= [500, 502, 503, 504]
+      @reconnection_codes.include? response.code.to_i
+    end
+
     def fail_connection(response)
       @ready_state = Servent::CLOSED
       @error_blocks.each { |block| block.call response, :wrong_mime_type }
-    end
-
-    def handle_response(response)
-      @ready_state = Servent::OPEN
-      @open_blocks.each { |block| block.call response }
-      response.read_body do |chunk|
-        @message_blocks.each { |block| block.call chunk }
-      end
     end
   end
 

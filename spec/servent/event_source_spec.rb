@@ -140,7 +140,25 @@ RSpec.describe Servent::EventSource do
       end
     end
 
-    context "reconnection"
+    context "reconnection" do
+      let(:status) { 500 }
+
+      before do
+        stub.to_return body: body, status: 200, headers: response_headers
+      end
+
+      it "schedules a reconnection task" do
+        allow(Thread).to receive(:new).and_yield
+        expect(Thread).to receive(:new).twice
+
+        # This test is a little bit difficult of visualize =(
+        # The first time the eventsource hits (Thread.new),
+        #   it will receive a reconnect status code
+        #   so the second stub takes place
+        #   and a second call to Thread.new takes place
+        event_source.start
+      end
+    end
   end
 
   context "events" do
