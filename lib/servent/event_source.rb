@@ -58,12 +58,15 @@ module Servent
       http.request type do |response|
         return fail_connection(response) if should_fail?(response)
         return schedule_reconnection if should_reconnect?(response)
+        open_connection response
+      end
+    end
 
-        @ready_state = Servent::OPEN
-        @open_blocks.each { |block| block.call response }
-        response.read_body do |chunk|
-          @message_blocks.each { |block| block.call chunk }
-        end
+    def open_connection(response)
+      @ready_state = Servent::OPEN
+      @open_blocks.each { |block| block.call response }
+      response.read_body do |chunk|
+        @message_blocks.each { |block| block.call chunk }
       end
     end
 
