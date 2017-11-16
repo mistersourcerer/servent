@@ -1,12 +1,13 @@
 require "net/http"
 $LOAD_PATH.unshift File.expand_path("../../lib", __FILE__)
 require "servent"
+require "pp"
 
-q = Queue.new
-
-trap :INT do
-  q << nil
-end
+#q = Queue.new
+#
+#trap :INT do
+#  q << nil
+#end
 
 #Thread.new do
 #  uri = URI("http://localhost:9292/omg")
@@ -25,13 +26,13 @@ end
 
 event_source = Servent::EventSource.new("http://localhost:9292/omg")
 event_source.on_message do |message|
-  q.push message
+  #q.push message
+  pp message
 end
-event_source.start
+event_source.start.join
 
-
-while (chunk = q.pop)
-  puts chunk
-end
+#while (chunk = q.pop)
+#  puts chunk
+#end
 
 puts "bye"
