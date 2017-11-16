@@ -133,13 +133,6 @@ RSpec.describe Servent::EventSource do
 
   context "events" do
     describe "#on_open" do
-      it "stores the block to be called later when opening con" do
-        expect { |on_open_block|
-          event_source.on_open(&on_open_block)
-          event_source.start.join
-        }.to yield_control
-      end
-
       it "allows more than one block to executed `on_open`" do
         first_block  = -> {}
         second_block = -> {}
@@ -153,14 +146,7 @@ RSpec.describe Servent::EventSource do
     end
 
     describe "#on_message" do
-      it "stores a block to be called when a message arrives" do
-        expect { |on_message_block|
-          event_source.on_message(&on_message_block)
-          event_source.start.join
-        }.to yield_with_args body
-      end
-
-      it "allows more than one block to executed `on_message`" do
+      it "allows more than one block to be executed `on_message`" do
         first_block  = -> {}
         second_block = -> {}
         event_source.on_message(&first_block)
