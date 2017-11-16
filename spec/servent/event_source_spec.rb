@@ -158,7 +158,20 @@ RSpec.describe Servent::EventSource do
       end
     end
 
-    describe "#on_error"
+    describe "#on_error" do
+      let(:response_headers) { { "Content-Type" => "text/omg-lol" } }
+
+      it "allows more than one block to be executed `on_error`" do
+        first_block  = -> {}
+        second_block = -> {}
+        event_source.on_error(&first_block)
+        event_source.on_error(&second_block)
+        expect(first_block).to receive(:call)
+        expect(second_block).to receive(:call)
+
+        event_source.start.join
+      end
+    end
   end
 
   describe "#close"
