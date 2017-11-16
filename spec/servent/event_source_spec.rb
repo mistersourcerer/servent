@@ -9,10 +9,11 @@ RSpec.describe Servent::EventSource do
   }
   let(:headers) { { "Accept" => "text/event-stream" } }
   let(:response_headers) { { "Content-Type" => "text/event-stream" } }
+  let(:status) { 200 }
   let(:stub) {
     stub_request(:get, url)
       .with(headers: headers)
-      .to_return(body: body, headers: response_headers)
+      .to_return(body: body, status: status, headers: response_headers)
   }
 
   subject(:event_source) { described_class.new url }
@@ -128,7 +129,36 @@ RSpec.describe Servent::EventSource do
       end
     end
 
-    context "reconnection"
+    context "unexpected status code" do
+      let(:status) { 560 }
+
+      it "triggers `on_error` block if response has unexpected status" do
+        expect { |error_block|
+          event_source.on_error(&error_block)
+          event_source.start.join
+        }.to yield_control
+      end
+    end
+
+    context "reconnection" do
+      let(:status) { 500 }
+
+      before do
+        stub.to_return body: body, status: 200, headers: response_headers
+      end
+
+      it "schedules a reconnection task" do
+        allow(Thread).to receive(:new).and_yield
+        expect(Thread).to receive(:new).twice
+
+        # This test is a little bit difficult of visualize =(
+        # The first time the eventsource hits (Thread.new),
+        #   it will receive a reconnect status code
+        #   so the second stub takes place
+        #   and a second call to Thread.new takes place
+        event_source.start
+      end
+    end
   end
 
   context "events" do
