@@ -57,14 +57,19 @@ module Servent
     def perform_request(http, type)
       http.request type do |response|
         # FIXME: response CAN have more than one mime type
-        unless response["Content-Type"] == "text/event-stream"
-          @ready_state = Servent::CLOSED
-          @error_blocks.each { |block| block.call response, :wrong_mime_type }
-          return
-        end
-
+        return fail_connection(response) if should_fail?(response)
         handle_response response
       end
+    end
+
+    def should_fail?(response)
+      (response["Content-Type"] != "text/event-stream") ||
+        !Servent::KNOWN_STATUSES.include?(response.code.to_i)
+    end
+
+    def fail_connection(response)
+      @ready_state = Servent::CLOSED
+      @error_blocks.each { |block| block.call response, :wrong_mime_type }
     end
 
     def handle_response(response)

@@ -8,4 +8,6 @@ module Servent
   CONNECTING = 0
   OPEN       = 1
   CLOSED     = 2
+
+  KNOWN_STATUSES = [200, 305, 401, 407, 301, 302, 303, 307, 500, 502, 503, 504]
 end

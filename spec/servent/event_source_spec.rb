@@ -9,10 +9,11 @@ RSpec.describe Servent::EventSource do
   }
   let(:headers) { { "Accept" => "text/event-stream" } }
   let(:response_headers) { { "Content-Type" => "text/event-stream" } }
+  let(:status) { 200 }
   let(:stub) {
     stub_request(:get, url)
       .with(headers: headers)
-      .to_return(body: body, headers: response_headers)
+      .to_return(body: body, status: status, headers: response_headers)
   }
 
   subject(:event_source) { described_class.new url }
@@ -125,6 +126,17 @@ RSpec.describe Servent::EventSource do
           event_source.on_error(&error_block)
           event_source.start.join
         }.to yield_with_args(Net::HTTPResponse, :wrong_mime_type)
+      end
+    end
+
+    context "unexpected status code" do
+      let(:status) { 560 }
+
+      it "triggers `on_error` block if response has unexpected status" do
+        expect { |error_block|
+          event_source.on_error(&error_block)
+          event_source.start.join
+        }.to yield_control
       end
     end
 
