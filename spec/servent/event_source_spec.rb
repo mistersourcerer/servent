@@ -162,12 +162,14 @@ RSpec.describe Servent::EventSource do
   end
 
   context "events" do
-    describe "#on_open" do
-      it "allows more than one block to executed `on_open`" do
+    RSpec.shared_examples "an event" do |register_method|
+      let(:register_method) { register_method }
+
+      it "execute blocks passed using the register method" do
         first_block  = -> {}
         second_block = -> {}
-        event_source.on_open(&first_block)
-        event_source.on_open(&second_block)
+        event_source.public_send(register_method, &first_block)
+        event_source.public_send(register_method, &second_block)
         expect(first_block).to receive(:call)
         expect(second_block).to receive(:call)
 
@@ -175,32 +177,13 @@ RSpec.describe Servent::EventSource do
       end
     end
 
-    describe "#on_message" do
-      it "allows more than one block to be executed `on_message`" do
-        first_block  = -> {}
-        second_block = -> {}
-        event_source.on_message(&first_block)
-        event_source.on_message(&second_block)
-        expect(first_block).to receive(:call)
-        expect(second_block).to receive(:call)
-
-        event_source.start.join
-      end
-    end
+    it_behaves_like "an event", :on_open
+    it_behaves_like "an event", :on_message
 
     describe "#on_error" do
       let(:response_headers) { { "Content-Type" => "text/omg-lol" } }
 
-      it "allows more than one block to be executed `on_error`" do
-        first_block  = -> {}
-        second_block = -> {}
-        event_source.on_error(&first_block)
-        event_source.on_error(&second_block)
-        expect(first_block).to receive(:call)
-        expect(second_block).to receive(:call)
-
-        event_source.start.join
-      end
+      it_behaves_like "an event", :on_error
     end
   end
 
