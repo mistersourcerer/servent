@@ -1,6 +1,6 @@
 # Servent
 
-[<img src="https://travis-ci.com/mistersourcerer/servent.svg?token=aMwiRm3UQ11zdWwMxGgZ&branch=master" />](https://travis-ci.com/mistersourcerer/servent)
+[<img src="https://travis-ci.org/mistersourcerer/servent.svg?branch=master" />](https://travis-ci.org/mistersourcerer/servent)
 
 Ruby _Server-Sent Events_ client.
 A _EventSource_ Ruby implementation based on the [W3C specification](https://www.w3.org/TR/eventsource).
