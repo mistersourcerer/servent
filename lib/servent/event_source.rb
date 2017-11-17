@@ -25,7 +25,7 @@ module Servent
       @http_starter ||= http_starter
       params = HTTPStartParams.new(@uri, @proxy_config, @net_http_options)
 
-      Thread.new {
+      @thread = Thread.new {
         @http_starter.start(*params.parameterize) do |http|
           get = Net::HTTP::Get.new @uri
           DEFAULT_HEADERS.each { |header, value| get[header] = value }
@@ -38,6 +38,11 @@ module Servent
 
     def listen(http_starter = Net::HTTP)
       start(http_starter).join
+    end
+
+    def close
+      @ready_state = Servent::CLOSED
+      @thread.kill unless @thread.nil?
     end
 
     def on_open(&open_block)

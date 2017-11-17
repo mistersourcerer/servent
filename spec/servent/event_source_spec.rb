@@ -187,5 +187,22 @@ RSpec.describe Servent::EventSource do
     end
   end
 
-  describe "#close"
+  describe "#close" do
+    let(:blocking_response) { BlockingResponse.new }
+
+    before do
+      stub.to_return { blocking_response.block }
+    end
+
+    it "kills the Thread waiting for response" do
+      thread = event_source.start
+      expect(thread).to receive(:kill)
+
+      event_source.close
+      thread.join
+
+      expect(thread.alive?).to eq false
+      expect(event_source.ready_state).to eq Servent::CLOSED
+    end
+  end
 end
