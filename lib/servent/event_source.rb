@@ -61,8 +61,8 @@ module Servent
 
     def perform_request(http, type)
       http.request type do |response|
-        return fail_connection response if should_fail?(response)
-        return schedule_reconnection if should_reconnect?(response)
+        return fail_connection response if should_fail? response
+        return schedule_reconnection if should_reconnect? response
         open_connection response
       end
     end
