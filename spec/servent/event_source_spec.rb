@@ -164,6 +164,25 @@ RSpec.describe Servent::EventSource do
         expect(second_response.read).to eq true
       end
     end
+
+    context "following redirection" do
+      let(:second_response) { OpenStruct.new(read: false) }
+      let(:status) { 301 }
+      let(:response_headers) {
+        {"Location" => "http://example.com/moved"}
+      }
+      let!(:redir_stub) {
+        stub_request(:get, "http://example.com/moved")
+          .with(headers: headers)
+          .to_return(body: body, status: status, headers: { "Content-Type" => "text/event-stream" })
+      }
+
+      it "stores 'moved permanently' (new) url for future connections" do
+        event_source.start.join
+
+        expect(event_source.uri.to_s).to eq "http://example.com/moved"
+      end
+    end
   end
 
   context "events" do

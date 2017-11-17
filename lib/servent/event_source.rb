@@ -6,7 +6,7 @@ module Servent
   class EventSource
     DEFAULT_HEADERS = { "Accept" => "text/event-stream" }
 
-    attr_reader :ready_state
+    attr_reader :ready_state, :uri
 
     def initialize(url, net_http_options: { read_timeout: 600 })
       @uri              = URI(url)
@@ -63,6 +63,8 @@ module Servent
       http.request type do |response|
         return fail_connection response if should_fail? response
         return schedule_reconnection if should_reconnect? response
+        store_new_parmanent_url response
+
         open_connection response
       end
     end
@@ -76,6 +78,7 @@ module Servent
     end
 
     def should_fail?(response)
+      return false if Servent::REDIRECT_STATUSES.include?(response.code.to_i)
       (response["Content-Type"] != "text/event-stream") ||
         !Servent::KNOWN_STATUSES.include?(response.code.to_i)
     end
@@ -91,6 +94,12 @@ module Servent
 
     def schedule_reconnection
       start
+    end
+
+    def store_new_parmanent_url(response)
+      return unless response.code.to_i == 301
+      @original_uri = @uri
+      @uri = URI(response["Location"])
     end
   end
 
