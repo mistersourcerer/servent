@@ -86,8 +86,7 @@ module Servent
     end
 
     def should_reconnect?(response)
-      @reconnection_codes ||= [500, 502, 503, 504]
-      @reconnection_codes.include? response.code.to_i
+      Servent::RECONNECTION_STATUSES.include? response.code.to_i
     end
 
     def schedule_reconnection
