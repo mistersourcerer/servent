@@ -160,6 +160,7 @@ RSpec.describe Servent::EventSource do
         #   (which is the one stubed in the `before` for this spec).
         event_source.start.join
         sleep(0.05)# arbitrary value to wait for the mock block to run
+
         expect(second_response.read).to eq true
       end
     end
