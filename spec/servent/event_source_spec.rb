@@ -142,11 +142,9 @@ RSpec.describe Servent::EventSource do
 
     context "reconnection" do
       let(:status) { 500 }
-      let(:second_response) { OpenStruct.new(read: false) }
 
       before do
         stub.to_return do
-          second_response.read = true
           { body: body, status: 200, headers: response_headers }
         end
       end
@@ -161,7 +159,35 @@ RSpec.describe Servent::EventSource do
         event_source.start.join
         sleep(0.05)# arbitrary value to wait for the mock block to run
 
-        expect(second_response.read).to eq true
+        expect(WebMock).to have_requested(:get, url).twice
+      end
+    end
+
+    context "following redirection" do
+      let(:second_response) { OpenStruct.new(read: false) }
+      let(:status) { 301 }
+      let(:response_headers) {
+        {"Location" => "http://example.com/moved"}
+      }
+
+      it "stores 'moved permanently' (new) url for future connections" do
+        event_source.start.join
+
+        expect(event_source.uri.to_s).to eq "http://example.com/moved"
+      end
+    end
+
+    context "following redirection" do
+      let(:second_response) { OpenStruct.new(read: false) }
+      let(:status) { 301 }
+      let(:response_headers) {
+        {"Location" => "http://example.com/moved"}
+      }
+
+      it "stores 'moved permanently' (new) url for future connections" do
+        event_source.start.join
+
+        expect(event_source.uri.to_s).to eq "http://example.com/moved"
       end
     end
   end
