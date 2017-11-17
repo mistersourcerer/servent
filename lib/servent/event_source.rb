@@ -4,6 +4,8 @@ require "net/http"
 
 module Servent
   class EventSource
+    DEFAULT_HEADERS = { "Accept" => "text/event-stream" }
+
     attr_reader :ready_state
 
     def initialize(url, net_http_options: { read_timeout: 600 })
@@ -23,11 +25,12 @@ module Servent
       @http_starter ||= http_starter
       params = HTTPStartParams.new(@uri, @proxy_config, @net_http_options)
 
-      Thread.new {
+      @thread = Thread.new {
         @http_starter.start(*params.parameterize) do |http|
           get = Net::HTTP::Get.new @uri
-          headers.each { |header, value| get[header] = value }
+          DEFAULT_HEADERS.each { |header, value| get[header] = value }
           yield http, get if block_given?
+
           perform_request http, get
         end
       }
@@ -35,6 +38,11 @@ module Servent
 
     def listen(http_starter = Net::HTTP)
       start(http_starter).join
+    end
+
+    def close
+      @ready_state = Servent::CLOSED
+      @thread.kill unless @thread.nil?
     end
 
     def on_open(&open_block)
@@ -51,20 +59,19 @@ module Servent
 
     private
 
-    def headers
-      { "Accept" => "text/event-stream" }
-    end
-
     def perform_request(http, type)
       http.request type do |response|
-        return fail_connection(response) if should_fail?(response)
+        return fail_connection response if should_fail?(response)
         return schedule_reconnection if should_reconnect?(response)
+        open_connection response
+      end
+    end
 
-        @ready_state = Servent::OPEN
-        @open_blocks.each { |block| block.call response }
-        response.read_body do |chunk|
-          @message_blocks.each { |block| block.call chunk }
-        end
+    def open_connection(response)
+      @ready_state = Servent::OPEN
+      @open_blocks.each { |block| block.call response }
+      response.read_body do |chunk|
+        @message_blocks.each { |block| block.call chunk }
       end
     end
 
@@ -73,8 +80,9 @@ module Servent
         !Servent::KNOWN_STATUSES.include?(response.code.to_i)
     end
 
-    def schedule_reconnection
-      start
+    def fail_connection(response)
+      @ready_state = Servent::CLOSED
+      @error_blocks.each { |block| block.call response, :wrong_mime_type }
     end
 
     def should_reconnect?(response)
@@ -82,9 +90,8 @@ module Servent
       @reconnection_codes.include? response.code.to_i
     end
 
-    def fail_connection(response)
-      @ready_state = Servent::CLOSED
-      @error_blocks.each { |block| block.call response, :wrong_mime_type }
+    def schedule_reconnection
+      start
     end
   end
 
