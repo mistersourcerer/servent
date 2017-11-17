@@ -142,21 +142,25 @@ RSpec.describe Servent::EventSource do
 
     context "reconnection" do
       let(:status) { 500 }
+      let(:second_response) { OpenStruct.new(read: false) }
 
       before do
-        stub.to_return body: body, status: 200, headers: response_headers
+        stub.to_return do
+          second_response.read = true
+          { body: body, status: 200, headers: response_headers }
+        end
       end
 
       it "schedules a reconnection task" do
-        allow(Thread).to receive(:new).and_yield
-        expect(Thread).to receive(:new).twice
-
         # This test is a little bit difficult of visualize =(
         # The first time the eventsource hits (Thread.new),
-        #   it will receive a reconnect status code
+        #   it will receive a "reconnect status code".
+        #   Eventsource "schedule" a new connection
         #   so the second stub takes place
-        #   and a second call to Thread.new takes place
-        event_source.start
+        #   (which is the one stubed in the `before` for this spec).
+        event_source.start.join
+        sleep(0.05)# arbitrary value to wait for the mock block to run
+        expect(second_response.read).to eq true
       end
     end
   end
@@ -198,8 +202,8 @@ RSpec.describe Servent::EventSource do
       thread = event_source.start
       expect(thread).to receive(:kill)
 
+      sleep(0.05)
       event_source.close
-      thread.join
 
       expect(thread.alive?).to eq false
       expect(event_source.ready_state).to eq Servent::CLOSED
