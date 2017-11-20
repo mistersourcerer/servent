@@ -8,15 +8,12 @@ class SSEEvent
   end
 
   def event
-    %(event: #{@type}
-id: #{@id}
-data: {
-data: "id": "#{@id}",
-data: "type": "#{@type}",
-data: "text": "#{@text}"
-data: }
+    <<~EVENT
+      event: #{@type}
+      id: #{@id}
+      data: #{@text}
 
-)
+    EVENT
   end
 end
 
@@ -33,20 +30,20 @@ server.mount_proc "/" do |_, res|
   res.chunked = true
 end
 
-server.mount_proc "/omg" do |_, res|
-  r, w = IO.pipe
-  clients << w
+server.mount_proc "/broadcast" do |req, _|
+  repeat = req.query["repeat"].to_i
+  repeat = 1 if repeat <= 0 || repeat.nil?
 
-  res.content_type = "text/event-stream"
-  res.body = r
-  res.chunked = true
+  clients.each do |client|
+    repeat.times do |counter|
+      client << SSEEvent.new("streaming #{counter}!").event
+    end
+  end
 end
 
-server.mount_proc "/broadcast" do |_, _|
+server.mount_proc "/enough" do |_, _|
   clients.each do |client|
-    Thread.new do
-      client << SSEEvent.new("streaming!").event
-    end
+    client << SSEEvent.new("close").event
   end
 end
 
