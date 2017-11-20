@@ -10,4 +10,7 @@ adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
 
+## [0.1.0] - 2017-11-20
 ### Added
+- Consumer for a server-sent events endpoint.
+- First fully functional example.
