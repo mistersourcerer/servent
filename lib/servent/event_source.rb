@@ -73,7 +73,13 @@ module Servent
       @ready_state = Servent::OPEN
       @open_blocks.each { |block| block.call response }
       response.read_body do |chunk|
-        @message_blocks.each { |block| block.call chunk }
+        # FIXME: use the same stream object to parse
+        #        different chunks.
+        stream = Stream.new chunk
+        events = stream.parse
+        events.each do |event|
+          @message_blocks.each { |block| block.call event }
+        end
       end
     end
 
