@@ -209,7 +209,43 @@ RSpec.describe Servent::EventSource do
     end
 
     it_behaves_like "an event", :on_open
-    it_behaves_like "an event", :on_message
+
+    describe "#on_message" do
+      include_examples "an event", :on_message
+
+      it "yields a `#data` object" do
+        event_source.on_message do |event|
+          expect(event).to respond_to :data
+        end
+
+        event_source.start.join
+      end
+
+      context "multiple messages" do
+        let(:body) {
+          <<~BODY
+            event: omg
+            id: 42
+            data: this is a message!
+
+            event: second
+            id: 13
+            data: another message
+          BODY
+        }
+
+        it "yields twice (one for each message)" do
+          @messages = []
+          event_source.on_message do |event|
+            @messages << event
+          end
+          event_source.start.join
+
+          expect(@messages.first.id).to eq "42"
+          expect(@messages.last.id).to eq "13"
+        end
+      end
+    end
 
     describe "#on_error" do
       let(:response_headers) { { "Content-Type" => "text/omg-lol" } }
