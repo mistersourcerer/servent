@@ -32,7 +32,7 @@ gem 'servent'
 event_source = Servent::EventSource.new("http://example.org/event-source")
 event_source.on_message do |message|
   puts "Event type: #{event.type}"
-  puts "Event body: #{event.body}"
+  puts "Event body: #{event.data}"
 
   # Will print:
   #
@@ -47,6 +47,58 @@ end
 # so we can receive event until it terminates:
 event_source.listen
 ```
+
+## More examples
+
+There is directory `examples` in this project
+with a _WEBrick_ server
+and also a `EventSource` consumer.
+
+### How to run the example
+
+#### TL;DR
+
+    # on one terminal:
+    $ rackup
+
+    # on a second one:
+    $ ruby consumer.rb
+
+    # on yeat another one
+    $ curl http://localhost:9292/broadcast
+
+    # and to make the consumer close itself:
+    $ curl http://localhost:9292/enough
+
+#### More detailed version
+
+if you are inside the directory
+(or copied the files in the example dir to your own)
+you can run a _rackup_:
+
+    $ rackup
+
+The server will run on port _9292_
+and it has 3 endpoints:
+
+    /
+    /broadcast
+    /enough
+
+The root (`/`) is intended to consumers
+and the one in the example
+starts listening to that endpoint like this:
+
+```ruby
+event_source = Servent::EventSource.new("http://localhost:9292/")
+# ...
+event_source.listen
+```
+
+If you want to test multiple messages arriving
+you can use the `repeat` parameters in the request:
+
+    $ curl http://localhost/broadcast?repeat=3
 
 ## Development
 
