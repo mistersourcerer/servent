@@ -3,7 +3,8 @@
 [<img src="https://travis-ci.org/mistersourcerer/servent.svg?branch=master" />](https://travis-ci.org/mistersourcerer/servent)
 
 Ruby _Server-Sent Events_ client.
-A _EventSource_ Ruby implementation based on the [W3C specification](https://www.w3.org/TR/eventsource).
+An _EventSource_ Ruby implementation
+based on the [W3C specification](https://www.w3.org/TR/eventsource).
 
 ## Early Development [15/11/2017]
 
@@ -11,13 +12,17 @@ This is just a first public draft,
 a bunch of changes and lack of documentation
 is to be expected.
 
-## Installation
+### Install
 
 Add this line to your application's Gemfile:
 
 ```ruby
 gem 'servent'
 ```
+
+Or use _rubygems_:
+
+    $ gem install servent
 
 ## Usage
 
