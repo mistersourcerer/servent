@@ -62,6 +62,7 @@ and also a `EventSource` consumer.
 ### How to run the example
 
 #### TL;DR
+    $ cd examples
 
     # on one terminal:
     $ rackup
