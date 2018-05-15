@@ -27,7 +27,7 @@ module Servent
 
     def parse_line(line)
       return unless line.include?(Servent::COLON)
-      field_name, data = line.split(":")
+      field_name, data = line.split(":", 2)
       normalized_data = remove_first_space(data).chomp
       process_as_field field_name, normalized_data
     end
